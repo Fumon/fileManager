@@ -2,7 +2,7 @@ from tkinter import *
 import json
 from tkinter import messagebox
 from utility import find_files
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 import time
 from random import choice, randint, shuffle
@@ -14,26 +14,6 @@ from random import choice, randint, shuffle
 
 
 # ---------------------------- function field ------------------------------- #
-
-# ---------------------------- Random String Generator------------------------------- #
-
-#Password Generator Project
-def generateRdstring():
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
-
-    Rdletters = [choice(letters) for _ in range(randint(8, 10))]
-    Rdsymbols = [choice(symbols) for _ in range(randint(2, 4))]
-    Rdnumbers = [choice(numbers) for _ in range(randint(2, 4))]
-
-    Rdlist = Rdletters + Rdsymbols + Rdnumbers
-    shuffle(Rdlist)
-
-    Rdstring = "".join(Rdlist)
-    return Rdstring
-
-
 
 
 # ---------------------------- search File Function ------------------------------- #
@@ -47,11 +27,7 @@ def searchFile():
         fileEntry.delete(0, END)
         return
     fpathInput = pathEntry.get()
-    if "\\" not in fpathInput:
-        messagebox.showinfo(
-            title="Path input error", message="Please contains the \ in your path input")
-        pathEntry.delete(0, END)
-        return
+
     #deal with the empty input. the tkinter has inserted an empty space before.  very nasty. there might be a better solution to resolve this bug.
     if len(text.get('1.0', END)) > 2:
         messagebox.showinfo(
@@ -66,50 +42,32 @@ def searchFile():
 
 # ---------------------------- Save Function------------------------------- #
 def save():
-    # date time properties needs to use the json.dumps to transfer to the json format(serialize)
-    #this id needs to be as random as enough to serve as the identifier
-    id = generateRdstring()
-    
-    fnameInput = fileEntry.get()
-    fpathInput = pathEntry.get()
-    searchResult = text.get('1.0', END)
-    recordDate = json.dumps(datetime.now().strftime('%Y-%m-%d'))
+    with open("json/searchFiles.json", "a+") as data_file:
+        fileLength = data_file.tell()
 
-
-    new_data = {
-         id: {
-            "fname": fnameInput,
-            "pathname":  fpathInput,
-            "searchResult":  searchResult,
-            "recordDate":  recordDate,
-        
-        }
-    }
-
-    if len(fnameInput) == 0 or len(fpathInput) == 0:
-        messagebox.showinfo(title="Oops", message="Please make sure you haven't left any fields empty.")
-    elif len(searchResult) < 3:
-        messagebox.showinfo(title="Oops", message="your result doesn't look right. go check the input again")
-    else:
-        try:
-            with open("json/searchFiles.json", "r") as data_file:
-                #Reading old data
-                data = json.load(data_file)
-        except FileNotFoundError:
-            with open("json/searchFiles.json", "w") as data_file:
-                json.dump(new_data, data_file, indent=4)
+        if fileLength:
+            # There's data in the file. Read it
+            data_file.seek(0)
+            data = json.load(data_file)
+            # Reset to start to prepare for write
+            data_file.seek(0)
+            data_file.truncate()
         else:
-            #Updating old data with new data
-            data.update(new_data)
-
-            with open("json/searchFiles.json", "w") as data_file:
-                #Saving updated data
-                json.dump(data, data_file, indent=4)
-        finally:
-             fileEntry.delete(0, END)
-             pathEntry.delete(0, END)
-             text.delete('1.0', END)
+            data = {}
     
+        # Updating old data with new data
+        data[datetime.now(timezone.utc).isoformat()] = {
+                "fname": fileEntry.get(),
+                "pathname":  pathEntry.get(),
+                "searchResult":  text.get('1.0', END)
+            }
+        json.dump(data, data_file, indent=4)
+        
+    
+    fileEntry.delete(0, END)
+    pathEntry.delete(0, END)
+    text.delete('1.0', END)
+
 
             
 
