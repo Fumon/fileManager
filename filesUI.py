@@ -1,4 +1,4 @@
-from tkinter import *
+import tkinter as tk
 import json
 from tkinter import messagebox
 from utility import find_files
@@ -10,16 +10,13 @@ import time
 
 # ---------------------------- search File Function ------------------------------- #
 
-
-def searchFile():
-    fnameInput = fileEntry.get()
-    fpathInput = pathEntry.get()
-    searchResult = find_files(fnameInput, fpathInput)
-    text.insert(END, f"{searchResult}")
-
-
 # ---------------------------- Save Function------------------------------- #
-def save():
+def saveToJson():
+    # This function is not included in the FindFilesWindow class for a good reason
+    # That reason is to try and isolate code to one responsibility
+    # The FindFilesWindow class is responsible for interacting with the user and checking whether input is valid
+    # This function is responsible for performing the actual action itself and takes arguments it knows are already valid
+
     # date time properties needs to use the json.dumps to transfer to the json format(serialize)
     funcName = "find_files"
     fnameInput = fileEntry.get()
@@ -74,53 +71,96 @@ def delete():
 
 
 # ---------------------------- UI SETUP ------------------------------- #
-#Global Config
-window = Tk()
-window.title("findFiles Function")
-window.config(padx=35, pady=35)
+
+class FindFilesWindow:
+    def __init__(self, parent) -> None:
+        self.frame = tk.Frame(parent, padx=35, pady=35)
+        # Create interface
+
+        # Labels
+        self.fileLabel = tk.Label(self.frame, text="File:")
+        self.fileLabel.grid(row=1, column=0)
+        self.pathLabel = tk.Label(self.frame, text="Path:")
+        self.pathLabel.grid(row=2, column=0)
+        self.textLabel = tk.Label(self.frame, text="Result:")
+        self.textLabel.grid(row=3, column=0)
+
+        # Entries
+        # fileEntry
+        self.fileEntry = tk.Entry(self.frame, width=40)
+        self.fileEntry.grid(row=1, column=1)
+        self.fileEntry.focus()
+        # path Entry
+        self.pathEntry = tk.Entry(self.frame, width=40)
+        self.pathEntry.grid(row=2, column=1)
+        self.pathEntry.focus()
+
+
+        # Buttons
+        self.search_button = tk.Button(self.frame, text="Search", width=9, command=self.searchFile)
+        #the first parameter for padx is left, the second parameter for pady is the right
+        self.search_button.grid(row=2, column=2,padx=(3,0))
+
+        #the tuple for pady, the first parameter for top, second parameter for buttom
+        self.add_button = tk.Button(self.frame, text="Save", width=30, command=self.save)
+        self.add_button.grid(row=4, column=1,pady=(5,5))
+
+        self.delete_button = tk.Button(self.frame, text="Delete", width=30, command=self.delete)
+        self.delete_button.grid(row=5, column=1,pady=(0,5))
+
+        # Todo This jumps to a new UI window to execute the Query function, there would be some command for switching the UI
+        self.query_button = tk.Button(self.frame, text="Date Query", width=30)
+        self.query_button.grid(row=6, column=1)
+
+
+        # Text
+        self.text = tk.Text(self.frame, height=5, width=30)
+        self.text.grid(row=3, column=1)
+
+    def searchFile(self) -> None:
+        fnameInput = self.fileEntry.get()
+        fpathInput = self.pathEntry.get()
+        searchResult = find_files(fnameInput, fpathInput)
+        self.text.insert(tk.END, f"{searchResult}")
+    
+    def save(self) -> None:
+        
+
+
+class MainWindow:
+    def __init__(self, parent) -> None:
+        self.parent = parent
+        self.childWindows = []
+        self.childCommandInstances = []
+
+        # Create a root object for the rest of the items
+        self.frame = tk.Frame(parent)
+
+        # Create buttons
+        self.findFilesButton = tk.Button(
+            self.frame,
+            text='Find Files',
+            command=self.gotoFindFiles)
+
+    def makeCommandWindow(self) -> tk.Toplevel:
+        newWindow = tk.Toplevel(self.parent)
+        self.childWindows.append(newWindow)
+        return newWindow
+
+    def makeFindFiles(self) -> None:
+        newParent = self.makeCommandWindow()
+        newParent.title("FindFiles Function")
+        self.childCommandInstances.append(FindFilesWindow(newParent))
 
 
 
-# Labels
-fileLabel = Label(window, text="File:")
-fileLabel.grid(row=1, column=0)
-pathLabel = Label(window, text="Path:")
-pathLabel.grid(row=2, column=0)
-textLabel = Label(window, text="Result:")
-textLabel.grid(row=3, column=0)
-
-# Entries
-# fileEntry
-fileEntry = Entry(width=40)
-fileEntry.grid(row=1, column=1)
-fileEntry.focus()
-# path Entry
-pathEntry = Entry(width=40)
-pathEntry.grid(row=2, column=1)
-pathEntry.focus()
 
 
-# Buttons
-search_button = Button(text="Search", width=9, command=searchFile)
-#the first parameter for padx is left, the second parameter for pady is the right
-search_button.grid(row=2, column=2,padx=(3,0))
-
-#the tuple for pady, the first parameter for top, second parameter for buttom
-add_button = Button(text="Save", width=30, command=save)
-add_button.grid(row=4, column=1,pady=(5,5))
-
-delete_button = Button(text="Delete", width=30, command=delete)
-delete_button.grid(row=5, column=1,pady=(0,5))
-
-# Todo This jumps to a new UI window to execute the Query function, there would be some command for switching the UI
-query_button = Button(text="Date Query", width=30)
-query_button.grid(row=6, column=1)
+if __name__ == "__main__":
+    #Global Config
+    root = tk.Tk()
+    MainWindow(root)
+    root.mainloop()
 
 
-# Text
-text = Text(height=5, width=30)
-# Puts cursor in textbox.
-text.focus()
-text.grid(row=3, column=1)
 
-window.mainloop()
