@@ -64,11 +64,14 @@ class MainWindow:
         self.childWindows.append(newWindow)
         return newWindow
 
+    def initializeCommandWindow(self, title: str, commandClass):
+        newParent = self.makeCommandWindow()
+        newParent.title(title)
+        self.childCommandInstances.append(commandClass(newParent))
+
     def makeFindFiles(self) -> None:
         #this command makes the the FindFilesWindow UI attached to the topLevel
-        newParent = self.makeCommandWindow()
-        newParent.title("FindFiles Function")
-        self.childCommandInstances.append(FindFilesWindow(newParent))
+        self.initializeCommandWindow("FindFiles Function", FindFilesWindow)
 
     def makeGetSize(self) -> None:
          newParent = self.makeCommandWindow()
