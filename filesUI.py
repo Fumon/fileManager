@@ -45,15 +45,54 @@ def delete():
         messagebox.showinfo(
             title="Oops", message="The File hasn't been created yet, nothing to delete")
 
-# ----------------------------Date Query Function------------------------------- #
+# ------------------------- UI Utility Classes ------------------------ #
 
+class SpawnsChildWindows:
+    childWindows: list[tk.Toplevel]
+
+    def __init__(self, parent) -> None:
+        self.parent = parent
+        self.childWindows = []
+    
+    def makeCommandWindow(self) -> tk.Toplevel:
+        newWindow = tk.Toplevel(self.parent)
+        self.childWindows.append(newWindow)
+        return newWindow
 
 # ---------------------------- UI SETUP ------------------------------- #
 
-class FindFilesWindow:
+class DateQueryWindow:
+    def __init__(self, parent) -> None:
+        self.frame = tk.Frame(parent, padx=40, pady=50)
+        self.frame.pack(side="top")
+
+        self.dateLabel = tk.Label(self.frame, text="Date:")
+        self.dateLabel.grid(row=1, column=0)
+        self.dateEntry = tk.Entry(self.frame, width=30)
+        self.dateEntry.grid(row=1, column=1)
+
+        self.resultLabel = tk.Label(self.frame, text="Result:")
+        self.resultLabel.grid(row=2, column=0)
+        self.resultText = tk.Text(self.frame, height=5, width=30)
+        self.resultText.grid(row=2, column=1)
+
+        self.queryButton = tk.Button(self.frame, text="Query")
+        self.queryButton.grid(row=3, column=0)
+
+    def doQuery(self) -> None:
+        # Input Validation
+        inputDate = self.dateEntry.get()
+        datetime
+
+
+class FindFilesWindow(SpawnsChildWindows):
     currentSearchResult: list[str]
 
     def __init__(self, parent) -> None:
+        super().__init__(parent)
+
+        self.childWindows
+
         self.frame = tk.Frame(parent, padx=35, pady=35)
         self.frame.pack(side="top")
         # Create interface
@@ -76,7 +115,6 @@ class FindFilesWindow:
         self.pathEntry.grid(row=2, column=1)
         self.pathEntry.focus()
 
-
         # Buttons
         self.search_button = tk.Button(self.frame, text="Search", width=9, command=self.searchFile)
         #the first parameter for padx is left, the second parameter for pady is the right
@@ -90,7 +128,7 @@ class FindFilesWindow:
         self.delete_button.grid(row=5, column=1,pady=(0,5))
 
         # Todo This jumps to a new UI window to execute the Query function, there would be some command for switching the UI
-        self.query_button = tk.Button(self.frame, text="Date Query", width=30)
+        self.query_button = tk.Button(self.frame, text="Date Query", width=30, command=self.makeDateQuery)
         self.query_button.grid(row=6, column=1)
 
 
@@ -98,6 +136,9 @@ class FindFilesWindow:
         self.currentSearchResult = None
         self.text = tk.Text(self.frame, height=5, width=30)
         self.text.grid(row=3, column=1)
+
+        # Set to none to indicate there is no date query active
+        self.dateQueryCommand = None
 
     def searchFile(self) -> None:
         fnameInput = self.fileEntry.get()
@@ -126,11 +167,15 @@ class FindFilesWindow:
     def delete(self) -> None:
         pass
 
+    def makeDateQuery(self) -> None:
+        if self.dateQueryCommand is None:
+            newWindow = self.makeCommandWindow()
+            newWindow.title("Date Query")
+            self.dateQueryCommand = DateQueryWindow(newWindow)
 
-class MainWindow:
+class MainUI(SpawnsChildWindows):
     def __init__(self, parent) -> None:
-        self.parent = parent
-        self.childWindows = []
+        super().__init__(parent)
         self.childCommandInstances = []
 
         # Create a root object for the rest of the items
@@ -144,11 +189,6 @@ class MainWindow:
             command=self.makeFindFiles)
         self.findFilesButton.pack(fill="both")
 
-    def makeCommandWindow(self) -> tk.Toplevel:
-        newWindow = tk.Toplevel(self.parent)
-        self.childWindows.append(newWindow)
-        return newWindow
-
     def makeFindFiles(self) -> None:
         newParent = self.makeCommandWindow()
         newParent.title("FindFiles Function")
@@ -156,9 +196,6 @@ class MainWindow:
 
 if __name__ == "__main__":
     #Global Config
-    root = tk.Tk()
-    window = MainWindow(root)
-    root.mainloop()
-
-
-
+    mainWindow = tk.Tk()
+    window = MainUI(mainWindow)
+    mainWindow.mainloop()
