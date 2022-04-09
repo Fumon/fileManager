@@ -3,7 +3,7 @@ import json
 from tkinter import messagebox
 import os
 
-from FindFiles import FindFilesWindow
+from src.FindFiles import FindFilesWindow
 from GetSize import GetSize
 from unzip import UnzipCopy
 # ---------------------------- function field ------------------------------- #

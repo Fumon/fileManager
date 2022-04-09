@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from utility import getSize
+from lib.utility import getSize
 
 class GetSize:
     def __init__(self,parent) -> None:

@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from utility import copyUnzip,_copy,_unzip
+from lib.utility import copyUnzip,_copy,_unzip
 
 
 class UnzipCopy:
